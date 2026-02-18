@@ -76,7 +76,7 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
 // ------------------------------------------------------------------
 resource gpt4Deployment 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = {
   parent: aiServices
-  name: 'gpt-4'
+  name: 'gpt-4.1'
   sku: {
     name: 'Standard'
     capacity: 10
@@ -84,8 +84,7 @@ resource gpt4Deployment 'Microsoft.CognitiveServices/accounts/deployments@2024-1
   properties: {
     model: {
       format: 'OpenAI'
-      name: 'gpt-4'
-      version: '0613'
+      name: 'gpt-4.1'
     }
   }
 }
@@ -97,13 +96,14 @@ resource phiDeployment 'Microsoft.CognitiveServices/accounts/deployments@2024-10
   parent: aiServices
   name: 'phi-4'
   sku: {
-    name: 'Standard'
-    capacity: 10
+    name: 'GlobalStandard'
+    capacity: 1
   }
   properties: {
     model: {
-      format: 'OpenAI'
-      name: 'phi-4'
+      format: 'Microsoft'
+      name: 'Phi-4-mini-instruct'
+      version: '1'
     }
   }
   dependsOn: [gpt4Deployment]
