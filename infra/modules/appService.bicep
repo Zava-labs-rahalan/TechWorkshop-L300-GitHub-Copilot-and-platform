@@ -39,6 +39,9 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
   name: webAppName
   location: location
   kind: 'app,linux,container'
+  tags: {
+    'azd-service-name': 'web'
+  }
   identity: {
     type: 'SystemAssigned'
   }
