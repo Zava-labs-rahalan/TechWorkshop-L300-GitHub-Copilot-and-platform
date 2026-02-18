@@ -6,6 +6,7 @@ services:
     project: ./src
     host: appservice
     language: dotnet
-    docker:
-      path: ./Dockerfile
-      context: .
+    hooks:
+      postdeploy:
+        shell: pwsh
+        run: az acr build --registry $env:AZURE_CONTAINER_REGISTRY_NAME --image zava-storefront:latest --file ../Dockerfile ..
