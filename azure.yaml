@@ -1,0 +1,11 @@
+name: zava-storefront
+metadata:
+  template: zava-storefront@0.0.1
+services:
+  web:
+    project: ./src
+    host: appservice
+    language: dotnet
+    docker:
+      path: ./Dockerfile
+      context: .
