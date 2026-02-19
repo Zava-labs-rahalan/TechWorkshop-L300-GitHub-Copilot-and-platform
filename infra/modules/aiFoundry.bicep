@@ -68,6 +68,7 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   properties: {
     customSubDomainName: aiServicesName
     publicNetworkAccess: 'Enabled'
+    disableLocalAuth: true
   }
 }
 
@@ -172,6 +173,7 @@ resource aiProject 'Microsoft.MachineLearningServices/workspaces@2024-10-01' = {
 }
 
 output aiServicesEndpoint string = aiServices.properties.endpoint
+output aiServicesId string = aiServices.id
 output aiServicesName string = aiServices.name
 output aiHubName string = aiHub.name
 output aiProjectName string = aiProject.name
