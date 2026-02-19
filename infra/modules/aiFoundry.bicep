@@ -221,7 +221,8 @@ resource aiHubDiag 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = 
   }
 }
 
-output aiServicesEndpoint string = aiServices.properties.endpoint
+output aiServicesEndpoint string = 'https://${aiServicesName}.services.ai.azure.com/models'
+output aiServicesContentSafetyEndpoint string = 'https://${aiServicesName}.services.ai.azure.com'
 output aiServicesId string = aiServices.id
 output aiServicesName string = aiServices.name
 output aiHubName string = aiHub.name

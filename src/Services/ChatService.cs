@@ -1,10 +1,30 @@
 using Azure.AI.ContentSafety;
 using Azure.AI.Inference;
+using Azure.Core;
 using Azure.Identity;
 using ZavaStorefront.Models;
 
 namespace ZavaStorefront.Services
 {
+    /// <summary>
+    /// Wraps a TokenCredential to override the requested scope.
+    /// The Azure.AI.Inference SDK (beta) requests tokens with scope "https://ml.azure.com/.default",
+    /// but the Azure AI Services endpoint requires "https://cognitiveservices.azure.com/.default".
+    /// </summary>
+    internal sealed class CognitiveServicesCredential : TokenCredential
+    {
+        private static readonly string[] Scopes = ["https://cognitiveservices.azure.com/.default"];
+        private readonly TokenCredential _inner;
+
+        public CognitiveServicesCredential(TokenCredential inner) => _inner = inner;
+
+        public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
+            => _inner.GetToken(new TokenRequestContext(Scopes), cancellationToken);
+
+        public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
+            => _inner.GetTokenAsync(new TokenRequestContext(Scopes), cancellationToken);
+    }
+
     public class ChatService
     {
         private readonly ChatCompletionsClient _client;
@@ -20,9 +40,11 @@ namespace ZavaStorefront.Services
                 ?? throw new InvalidOperationException("AzureAI:Endpoint configuration is required.");
             _modelDeploymentName = configuration["AzureAI:ModelDeploymentName"] ?? "phi-4";
 
+            var credential = new CognitiveServicesCredential(new DefaultAzureCredential());
+
             _client = new ChatCompletionsClient(
                 new Uri(endpoint),
-                new DefaultAzureCredential());
+                credential);
 
             var contentSafetyEndpoint = configuration["AzureAI:ContentSafetyEndpoint"]
                 ?? throw new InvalidOperationException("AzureAI:ContentSafetyEndpoint configuration is required.");
