@@ -1,3 +1,4 @@
+using Azure.AI.ContentSafety;
 using Azure.AI.Inference;
 using Azure.Identity;
 using ZavaStorefront.Models;
@@ -7,6 +8,7 @@ namespace ZavaStorefront.Services
     public class ChatService
     {
         private readonly ChatCompletionsClient _client;
+        private readonly ContentSafetyClient _contentSafetyClient;
         private readonly string _modelDeploymentName;
         private readonly ILogger<ChatService> _logger;
 
@@ -21,12 +23,71 @@ namespace ZavaStorefront.Services
             _client = new ChatCompletionsClient(
                 new Uri(endpoint),
                 new DefaultAzureCredential());
+
+            var contentSafetyEndpoint = configuration["AzureAI:ContentSafetyEndpoint"]
+                ?? throw new InvalidOperationException("AzureAI:ContentSafetyEndpoint configuration is required.");
+            _contentSafetyClient = new ContentSafetyClient(
+                new Uri(contentSafetyEndpoint),
+                new DefaultAzureCredential());
+        }
+
+        /// <summary>
+        /// Evaluates the given text against Azure AI Content Safety.
+        /// Returns (isSafe, message) where message contains details when unsafe.
+        /// </summary>
+        private async Task<(bool IsSafe, string? Reason)> EvaluateContentSafetyAsync(string text)
+        {
+            try
+            {
+                var request = new AnalyzeTextOptions(text);
+
+                var response = await _contentSafetyClient.AnalyzeTextAsync(request);
+
+                const int threshold = 2;
+
+                var categories = new (string Name, int? Severity)[]
+                {
+                    ("Violence",      response.Value.CategoriesAnalysis.FirstOrDefault(c => c.Category == TextCategory.Violence)?.Severity),
+                    ("Sexual",        response.Value.CategoriesAnalysis.FirstOrDefault(c => c.Category == TextCategory.Sexual)?.Severity),
+                    ("Hate",          response.Value.CategoriesAnalysis.FirstOrDefault(c => c.Category == TextCategory.Hate)?.Severity),
+                    ("SelfHarm",      response.Value.CategoriesAnalysis.FirstOrDefault(c => c.Category == TextCategory.SelfHarm)?.Severity),
+                };
+
+                foreach (var (name, severity) in categories)
+                {
+                    _logger.LogInformation("Content Safety — {Category}: {Severity}", name, severity ?? 0);
+                    if (severity.HasValue && severity.Value >= threshold)
+                    {
+                        _logger.LogWarning("Content Safety blocked message. Category={Category}, Severity={Severity}", name, severity.Value);
+                        return (false, name);
+                    }
+                }
+
+                _logger.LogInformation("Content Safety evaluation passed.");
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calling Azure AI Content Safety. Blocking request as a precaution.");
+                return (false, "ServiceError");
+            }
         }
 
         public async Task<string> GetChatResponseAsync(List<ChatMessage> conversationHistory)
         {
             try
             {
+                // Evaluate the latest user message with Content Safety
+                var latestUserMessage = conversationHistory.LastOrDefault(m => m.Role == "user")?.Content;
+                if (!string.IsNullOrEmpty(latestUserMessage))
+                {
+                    var (isSafe, reason) = await EvaluateContentSafetyAsync(latestUserMessage);
+                    if (!isSafe)
+                    {
+                        return "I'm sorry, but I'm unable to process that message as it may contain inappropriate content. Please rephrase your question and try again.";
+                    }
+                }
+
                 var requestOptions = new ChatCompletionsOptions
                 {
                     Model = _modelDeploymentName

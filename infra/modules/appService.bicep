@@ -16,6 +16,12 @@ param appInsightsConnectionString string
 @description('Application Insights instrumentation key')
 param appInsightsInstrumentationKey string
 
+@description('The Azure AI Services endpoint URL')
+param aiServicesEndpoint string
+
+@description('The AI model deployment name')
+param aiModelDeploymentName string = 'phi-4'
+
 @description('The Docker image name (without registry prefix or tag)')
 param dockerImageName string = 'zava-storefront'
 
@@ -72,6 +78,14 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
         {
           name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
           value: 'false'
+        }
+        {
+          name: 'AzureAI__Endpoint'
+          value: aiServicesEndpoint
+        }
+        {
+          name: 'AzureAI__ModelDeploymentName'
+          value: aiModelDeploymentName
         }
       ]
     }

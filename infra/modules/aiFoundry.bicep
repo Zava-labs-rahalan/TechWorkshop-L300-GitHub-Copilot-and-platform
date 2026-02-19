@@ -19,6 +19,9 @@ param aiProjectName string
 @description('The Application Insights resource ID (for AI Hub telemetry)')
 param appInsightsId string
 
+@description('The Log Analytics workspace resource ID for diagnostic settings')
+param logAnalyticsWorkspaceId string
+
 // ------------------------------------------------------------------
 // Storage Account (required dependency for AI Foundry Hub)
 // ------------------------------------------------------------------
@@ -68,6 +71,7 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   properties: {
     customSubDomainName: aiServicesName
     publicNetworkAccess: 'Enabled'
+    disableLocalAuth: true
   }
 }
 
@@ -171,7 +175,54 @@ resource aiProject 'Microsoft.MachineLearningServices/workspaces@2024-10-01' = {
   }
 }
 
+// ------------------------------------------------------------------
+// Diagnostic Settings — AI Services account
+// ------------------------------------------------------------------
+resource aiServicesDiag 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${aiServicesName}-diag'
+  scope: aiServices
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        categoryGroup: 'allLogs'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}
+
+// ------------------------------------------------------------------
+// Diagnostic Settings — AI Foundry Hub
+// ------------------------------------------------------------------
+resource aiHubDiag 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${aiHubName}-diag'
+  scope: aiHub
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        categoryGroup: 'allLogs'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}
+
 output aiServicesEndpoint string = aiServices.properties.endpoint
+output aiServicesId string = aiServices.id
 output aiServicesName string = aiServices.name
 output aiHubName string = aiHub.name
 output aiProjectName string = aiProject.name

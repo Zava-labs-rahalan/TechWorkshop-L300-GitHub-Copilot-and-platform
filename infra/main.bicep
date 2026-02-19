@@ -83,6 +83,7 @@ module appService 'modules/appService.bicep' = {
     acrLoginServer: acr.outputs.loginServer
     appInsightsConnectionString: appInsights.outputs.connectionString
     appInsightsInstrumentationKey: appInsights.outputs.instrumentationKey
+    aiServicesEndpoint: aiFoundry.outputs.aiServicesEndpoint
   }
 }
 
@@ -104,6 +105,23 @@ module aiFoundry 'modules/aiFoundry.bicep' = {
     aiHubName: aiHubName
     aiProjectName: aiProjectName
     appInsightsId: appInsights.outputs.id
+    logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
+  }
+}
+
+// 7. Cognitive Services OpenAI User role — Web App managed identity → AI Services
+module aiServicesRole 'modules/aiServicesRoleAssignment.bicep' = {
+  params: {
+    principalId: appService.outputs.principalId
+    aiServicesName: aiFoundry.outputs.aiServicesName
+  }
+}
+
+// 8. Azure Workbook — AI Services Observability
+module observabilityWorkbook 'modules/workbook.bicep' = {
+  params: {
+    location: location
+    logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
   }
 }
 
