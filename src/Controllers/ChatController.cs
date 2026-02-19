@@ -33,8 +33,10 @@ namespace ZavaStorefront.Controllers
                 return RedirectToAction("Index");
             }
 
+            var sanitizedMessage = userMessage.Replace("\r", " ").Replace("\n", " ");
+
             _logger.LogInformation("User sent chat message: {MessagePreview}",
-                userMessage.Length > 50 ? userMessage[..50] + "..." : userMessage);
+                sanitizedMessage.Length > 50 ? sanitizedMessage[..50] + "..." : sanitizedMessage);
 
             var chatHistory = GetChatHistory();
 
