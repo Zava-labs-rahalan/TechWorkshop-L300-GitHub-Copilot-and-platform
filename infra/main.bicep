@@ -84,6 +84,7 @@ module appService 'modules/appService.bicep' = {
     appInsightsConnectionString: appInsights.outputs.connectionString
     appInsightsInstrumentationKey: appInsights.outputs.instrumentationKey
     aiServicesEndpoint: aiFoundry.outputs.aiServicesEndpoint
+    aiContentSafetyEndpoint: aiFoundry.outputs.aiServicesContentSafetyEndpoint
   }
 }
 

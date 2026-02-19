@@ -16,8 +16,11 @@ param appInsightsConnectionString string
 @description('Application Insights instrumentation key')
 param appInsightsInstrumentationKey string
 
-@description('The Azure AI Services endpoint URL')
+@description('The Azure AI Services endpoint URL for model inference')
 param aiServicesEndpoint string
+
+@description('The Azure AI Content Safety endpoint URL')
+param aiContentSafetyEndpoint string
 
 @description('The AI model deployment name')
 param aiModelDeploymentName string = 'phi-4'
@@ -90,6 +93,10 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
         {
           name: 'AzureAI__ModelDeploymentName'
           value: aiModelDeploymentName
+        }
+        {
+          name: 'AzureAI__ContentSafetyEndpoint'
+          value: aiContentSafetyEndpoint
         }
       ]
     }
