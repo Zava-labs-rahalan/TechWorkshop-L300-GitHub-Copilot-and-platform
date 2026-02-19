@@ -117,6 +117,14 @@ module aiServicesRole 'modules/aiServicesRoleAssignment.bicep' = {
   }
 }
 
+// 8. Azure Workbook — AI Services Observability
+module observabilityWorkbook 'modules/workbook.bicep' = {
+  params: {
+    location: location
+    logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
+  }
+}
+
 // ------------------------------------------------------------------
 // Outputs (consumed by AZD and CI/CD)
 // ------------------------------------------------------------------
