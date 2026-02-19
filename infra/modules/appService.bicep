@@ -80,6 +80,10 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
           value: 'false'
         }
         {
+          name: 'WEBSITES_PORT'
+          value: '80'
+        }
+        {
           name: 'AzureAI__Endpoint'
           value: aiServicesEndpoint
         }
