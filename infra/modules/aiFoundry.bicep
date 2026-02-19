@@ -19,6 +19,9 @@ param aiProjectName string
 @description('The Application Insights resource ID (for AI Hub telemetry)')
 param appInsightsId string
 
+@description('The Log Analytics workspace resource ID for diagnostic settings')
+param logAnalyticsWorkspaceId string
+
 // ------------------------------------------------------------------
 // Storage Account (required dependency for AI Foundry Hub)
 // ------------------------------------------------------------------
@@ -169,6 +172,52 @@ resource aiProject 'Microsoft.MachineLearningServices/workspaces@2024-10-01' = {
     friendlyName: 'Zava Storefront AI Project'
     description: 'AI Foundry project for ZavaStorefront dev environment'
     hubResourceId: aiHub.id
+  }
+}
+
+// ------------------------------------------------------------------
+// Diagnostic Settings — AI Services account
+// ------------------------------------------------------------------
+resource aiServicesDiag 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${aiServicesName}-diag'
+  scope: aiServices
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        categoryGroup: 'allLogs'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}
+
+// ------------------------------------------------------------------
+// Diagnostic Settings — AI Foundry Hub
+// ------------------------------------------------------------------
+resource aiHubDiag 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${aiHubName}-diag'
+  scope: aiHub
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        categoryGroup: 'allLogs'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
   }
 }
 

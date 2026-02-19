@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.40.2.10011",
-      "templateHash": "17859146474763133463"
+      "templateHash": "2571870778442232364"
     }
   },
   "parameters": {
@@ -574,6 +574,9 @@
           },
           "appInsightsId": {
             "value": "[reference('appInsights').outputs.id.value]"
+          },
+          "logAnalyticsWorkspaceId": {
+            "value": "[reference('logAnalytics').outputs.workspaceId.value]"
           }
         },
         "template": {
@@ -583,7 +586,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.40.2.10011",
-              "templateHash": "17539261052214200028"
+              "templateHash": "1019559285336097306"
             }
           },
           "parameters": {
@@ -627,6 +630,12 @@
               "type": "string",
               "metadata": {
                 "description": "The Application Insights resource ID (for AI Hub telemetry)"
+              }
+            },
+            "logAnalyticsWorkspaceId": {
+              "type": "string",
+              "metadata": {
+                "description": "The Log Analytics workspace resource ID for diagnostic settings"
               }
             }
           },
@@ -781,6 +790,54 @@
               "dependsOn": [
                 "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiHubName'))]"
               ]
+            },
+            {
+              "type": "Microsoft.Insights/diagnosticSettings",
+              "apiVersion": "2021-05-01-preview",
+              "scope": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName'))]",
+              "name": "[format('{0}-diag', parameters('aiServicesName'))]",
+              "properties": {
+                "workspaceId": "[parameters('logAnalyticsWorkspaceId')]",
+                "logs": [
+                  {
+                    "categoryGroup": "allLogs",
+                    "enabled": true
+                  }
+                ],
+                "metrics": [
+                  {
+                    "category": "AllMetrics",
+                    "enabled": true
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/diagnosticSettings",
+              "apiVersion": "2021-05-01-preview",
+              "scope": "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiHubName'))]",
+              "name": "[format('{0}-diag', parameters('aiHubName'))]",
+              "properties": {
+                "workspaceId": "[parameters('logAnalyticsWorkspaceId')]",
+                "logs": [
+                  {
+                    "categoryGroup": "allLogs",
+                    "enabled": true
+                  }
+                ],
+                "metrics": [
+                  {
+                    "category": "AllMetrics",
+                    "enabled": true
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiHubName'))]"
+              ]
             }
           ],
           "outputs": {
@@ -808,7 +865,8 @@
         }
       },
       "dependsOn": [
-        "appInsights"
+        "appInsights",
+        "logAnalytics"
       ]
     },
     "aiServicesRole": {

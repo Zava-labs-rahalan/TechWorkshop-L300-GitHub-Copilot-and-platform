@@ -105,6 +105,7 @@ module aiFoundry 'modules/aiFoundry.bicep' = {
     aiHubName: aiHubName
     aiProjectName: aiProjectName
     appInsightsId: appInsights.outputs.id
+    logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
   }
 }
 
